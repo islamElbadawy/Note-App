@@ -1,30 +1,70 @@
 const { json } = require('body-parser');
 var generator = require('../util/generator');
-var memStorage = require('../util/memory.storage')
+var memStorage = require('../util/memory.storage');
+var model = require('../moodel/note.model');
 
 
 
 
 exports.getAllNotes = (req, res) => {
-    var seq_id_1   = generator.generate();
-    memStorage.store.setItem(seq_id_1, '1st key' );
-    var seq_id_2   = generator.generate();
-    memStorage.store.setItem(seq_id_2, '2nd key' );
-    var keys = memStorage.getKeys(memStorage.store);
-    var values = memStorage.getValues(memStorage.store);
-    console.log(values);
-    res.send('Get all keys .... Keys...' + JSON.stringify(keys));
+    var notes = [];
+    notes = memStorage.getValues(memStorage.store);
+
+    return res.status(200).send(notes);
 }
 
 
 exports.saveNote = (req, res) => {
-    res.send('Save note');
+    var seq_id   = generator.generate(); 
+    var title = req.body.title;
+    var content = req.body.content;
+    var author = req.body.author;
+    var createdOn = new Date();
+
+    if(!title || !content || !author){
+        return res.status(500).send({error: 'title, content, and author fields are required'})
+    }
+
+    var Note = model.Note;
+    var noteObj = new Note(seq_id, title, content, author, createdOn);
+    memStorage.store.setItem(seq_id, noteObj);
+
+    return res.status(201).send({message: 'Note created successfully...', data: [memStorage.store.getItem(seq_id)]});
 }
 
 exports.updateNote = (req, res) => {
-    res.send('Update note');
+    var noteId   = req.body.noteId; 
+    var title = req.body.title;
+    var content = req.body.content;
+    var author = req.body.author;
+    var createdOn = new Date();
+
+    if(!noteId || !title || !content || !author){
+        return res.status(500).send({error: 'noteId, title, content, and author fields are required'})
+    }
+
+    if(!memStorage.store.getItem(noteId)){
+        return res.status(500).send({error: 'Note id not found'})
+    }
+
+    var Note = model.Note;
+    var noteObj = new Note(noteId, title, content, author, createdOn);
+    memStorage.store.setItem(noteId, noteObj);
+
+    return res.status(200).send({message: 'Note created successfully...', data: [memStorage.store.getItem(noteId)]});
 }
 
 exports.deleteNote = (req, res) => {
-    res.send('Delete note');
+    var noteId = req.params.noteId;
+    if(!noteId){
+        return res.status(500).send({error: 'noteId fields is required'})
+    }
+
+    if(!memStorage.store.getItem(noteId)){
+        return res.status(500).send({error: 'note does not exist'})
+        
+    }
+
+    memStorage.store.removeItem(noteId)
+    return res.status(200).send('Note has been deleted successfully')
 }

@@ -5,11 +5,11 @@ const router = expreess.Router();
 
 router.get('/notes', noteController.getAllNotes);
 
-router.post('/notes/create', noteController.saveNote);
+router.post('/note/create', noteController.saveNote);
 
-router.put('/notes/update', noteController.updateNote);
+router.put('/note/update', noteController.updateNote);
 
-router.delete('/notes/delete', noteController.deleteNote);
+router.delete('/note/delete/:noteId', noteController.deleteNote);
 
 
 module.exports =  router;
